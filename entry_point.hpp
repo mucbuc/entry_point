@@ -10,7 +10,7 @@ namespace entry_point
     const unsigned default_fps_native = 60;
 
     template<typename T>
-    void execute_main_loop(T logic, unsigned fps = 0)
+    void execute_main_loop(T update_callback, unsigned fps = 0)
     {
         using namespace std::chrono;
 
@@ -18,17 +18,17 @@ namespace entry_point
 
 #ifdef __EMSCRIPTEN__
         using data_type = std::tuple<T, time_point<system_clock>>;
-        data_type data { std::make_tuple(logic, frame_begin) };
+        data_type data { std::make_tuple(update_callback, frame_begin) };
         emscripten_set_main_loop_arg(
             [](void* userData) {
                 data_type * data(reinterpret_cast<data_type *>(userData));
-                auto logic { std::get<0>(* data) };
+                auto update_callback { std::get<0>(* data) };
                 auto & frame_begin { std::get<1>(* data) };
                 const auto now = system_clock::now();
                 const duration<double> diff(now - frame_begin);
                 frame_begin = now;
 
-                logic(diff.count(), [](){
+                update_callback(diff.count(), [](){
                     emscripten_cancel_main_loop();
                 });
             },
@@ -51,7 +51,7 @@ namespace entry_point
             }
 
             frame_begin = work_begin;
-            logic(diff.count(), [& done](){
+            update_callback(diff.count(), [& done](){
                 done = true;
             });
 
