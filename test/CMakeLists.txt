@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 
 project(Example)
 
+add_subdirectory(lib/entry_point)
 add_executable(Example src/test.cpp)
 
 set_target_properties(Example PROPERTIES
