@@ -22,7 +22,7 @@ namespace entry_point
         emscripten_set_main_loop_arg(
             [](void* userData) {
                 data_type * data(reinterpret_cast<data_type *>(userData));
-                auto update_callback { std::get<0>(* data) };
+                auto & update_callback { std::get<0>(* data) };
                 auto & frame_begin { std::get<1>(* data) };
                 const auto now = system_clock::now();
                 const duration<double> diff(now - frame_begin);
