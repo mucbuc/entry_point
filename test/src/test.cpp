@@ -1,5 +1,6 @@
-#include "../../entry_point.hpp"
 #include <asserter/src/asserter.hpp>
+
+#include "../../entry_point.hpp"
 
 #include <iostream>
 
