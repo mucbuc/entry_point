@@ -100,7 +100,7 @@ namespace entry_point
                 ASSERT(++init_wait_frames < 30);
             }
     #endif
-        });
+        }, fps);
     }
 
     template<typename T>
