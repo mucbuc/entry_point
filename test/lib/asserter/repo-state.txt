@@ -1,0 +1,3 @@
+Remote: git@github.com:mucbuc/asserter.git
+Commit: 58dc03b8e82717852a513948bfa70c327f71e39c
+Branch: master
