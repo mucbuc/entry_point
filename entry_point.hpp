@@ -5,11 +5,103 @@
 #else
 #include <thread>
 #endif
+#include <array>
+#include <atomic>
 #include <chrono>
+#include <functional>
+#include <tuple>
+#include <utility>
 
 namespace entry_point
 {
     const unsigned default_fps_native = 60;
+
+    template <typename State_Type, typename... T>
+    void execute_main_loop(State_Type & state, unsigned fps, std::tuple<T...>&& modules)
+    {
+        using ModulesType = std::tuple<T...>;
+        static constexpr size_t ModulesSize = std::tuple_size<ModulesType>::value;
+
+        std::array<std::function<void()>, ModulesSize> release_callbacks;
+        size_t init_counter( 0 );
+        std::atomic<bool> all_modules_initialized = false;
+
+        auto on_initialized = [&all_modules_initialized, &release_callbacks, &init_counter](auto done) {
+            release_callbacks[init_counter] = done;
+            ++init_counter;
+
+            if (init_counter == ModulesSize) {
+                all_modules_initialized = true;
+            }
+        };
+
+        auto init_mod = [on_initialized](auto&& mod) {
+            mod.init(on_initialized);
+        };
+
+        std::apply([init_mod](auto&&... mod_instance) {
+            ((
+                 init_mod(mod_instance)),
+                ...);
+        },
+            modules);
+
+        entry_point::execute_main_loop([   &all_modules_initialized,
+                                           &state,
+                                           &init_counter,
+                                           &release_callbacks,
+                                           &modules
+    #ifndef NDEBUG
+                                           , init_wait_frames = 0
+    #endif
+        ](auto ft, auto cancel) mutable {
+            if (all_modules_initialized) {
+
+                bool canceled = false;
+                auto release_and_cancel = [
+                        cancel, 
+                        & init_counter, 
+                        & release_callbacks, 
+                        & canceled
+                    ](){
+
+                    if (!canceled)
+                    {
+                        auto release_mod = [& init_counter](auto&& mod) {
+                            ASSERT(init_counter)
+                            (init_counter);
+                            ASSERT(mod);
+
+                            --init_counter;
+                            mod();
+                        };
+
+                        std::apply([release_mod](auto&&... mod_instance) {
+                            ((
+                                 release_mod(mod_instance)),
+                                ...);
+                        },
+                            release_callbacks);
+                    
+                        cancel();
+                        canceled = true;
+                    }
+                };
+
+                std::apply([&state, ft, release_and_cancel](auto&&... mod_instance) {
+                    ((
+                         mod_instance.run(state, ft, release_and_cancel)),
+                        ...);
+                },
+                    modules);
+            }
+    #ifndef NDEBUG
+            else {
+                ASSERT(++init_wait_frames < 30);
+            }
+    #endif
+        });
+    }
 
     template<typename T>
     void execute_main_loop(T update_callback, unsigned fps = 0)

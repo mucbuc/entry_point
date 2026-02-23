@@ -1,4 +1,6 @@
 #include "../../entry_point.hpp"
+#include <asserter/src/asserter.hpp>
+
 #include <iostream>
 
 int main()
