@@ -23,6 +23,13 @@ void execute_main_loop(T update_callback, unsigned fps = 0)
     time_point<system_clock> frame_begin { system_clock::now() };
 
 #ifdef __EMSCRIPTEN__
+
+#ifndef NO_ENTRY
+    bool simulate_infinite_loop = true;
+#else
+    bool simulate_infinite_loop = false;
+#endif
+
     using data_type = std::tuple<T, time_point<system_clock>>;
     data_type data { std::make_tuple(update_callback, frame_begin) };
     emscripten_set_main_loop_arg(
@@ -40,7 +47,7 @@ void execute_main_loop(T update_callback, unsigned fps = 0)
         },
         &data,
         fps,
-        true);
+        simulate_infinite_loop);
 #else
 
     fps = fps ? fps : default_fps_native;
