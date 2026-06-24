@@ -76,7 +76,7 @@ void execute_main_loop(T update_callback, unsigned fps = 0)
 }
 
 template <typename State_Type, typename... T>
-void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...>&& modules)
+void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...> modules)
 {
     using ModulesType = std::tuple<T...>;
     static constexpr size_t ModulesSize = std::tuple_size<ModulesType>::value;
@@ -160,4 +160,4 @@ void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...>&& modul
         fps);
 }
 
-}
+} // entry_point
