@@ -70,7 +70,7 @@ namespace entry_point
     }
 
     template <typename State_Type, typename... T>
-    void execute_main_loop(State_Type & state, unsigned fps, std::tuple<T...>&& modules)
+    void execute_main_loop(State_Type & state, unsigned fps, std::tuple<T...> modules)
     {
         using ModulesType = std::tuple<T...>;
         static constexpr size_t ModulesSize = std::tuple_size<ModulesType>::value;
