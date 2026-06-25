@@ -31,7 +31,7 @@ void execute_main_loop(T update_callback, unsigned fps = 0)
 #endif
 
     using data_type = std::tuple<T, time_point<system_clock>>;
-    data_type data { std::make_tuple(update_callback, frame_begin) };
+    data_type* data = new data_type(std::move(update_callback), frame_begin);
     emscripten_set_main_loop_arg(
         [](void* userData) {
             data_type* data(reinterpret_cast<data_type*>(userData));
@@ -41,11 +41,12 @@ void execute_main_loop(T update_callback, unsigned fps = 0)
             const duration<double> diff(now - frame_begin);
             frame_begin = now;
 
-            update_callback(diff.count(), []() {
+            update_callback(diff.count(), [data]() {
+                delete data;
                 emscripten_cancel_main_loop();
             });
         },
-        &data,
+        data,
         fps,
         simulate_infinite_loop);
 #else
