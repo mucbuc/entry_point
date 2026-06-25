@@ -103,7 +103,7 @@ void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...> modules
     };
 
     auto init_mod = [&on_initialized](auto&& mod) {
-        mod.init(on_initialized);
+        mod.init(std::ref(on_initialized));
     };
 
     std::apply([&init_mod](auto&&... mod_instance) {

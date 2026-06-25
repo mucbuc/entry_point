@@ -1,0 +1,26 @@
+stages:
+  - build
+  - test
+
+# ── Native job ────────────────────────────────────────────────
+build-native:
+  stage: build
+  image: ubuntu:latest
+  before_script:
+    - apt-get update -qq && apt-get install -y cmake build-essential
+  script:
+    - cd test
+    - cmake -B build
+    - cmake --build build
+  artifacts:
+    paths:
+      - test/build/
+    expire_in: 1 hour
+
+test-native:
+  stage: test
+  image: ubuntu:latest
+  needs: [build-native]
+  script:
+    - cd test
+    - ctest --test-dir build
