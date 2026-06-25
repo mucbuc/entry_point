@@ -83,9 +83,15 @@ void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...> modules
     static constexpr size_t ModulesSize = std::tuple_size<ModulesType>::value;
 
     std::array<std::function<void()>, ModulesSize> release_callbacks;
-    std::atomic<bool> all_modules_initialized = false;
+    bool all_modules_initialized = false;
 
+#ifndef __EMSCRIPTEN__
+    const std::thread::id this_thread_id = std::this_thread::get_id();
+    auto on_initialized = [&all_modules_initialized, &release_callbacks, init_counter = 0, this_thread_id](auto done) mutable {
+        ASSERT(this_thread_id == std::this_thread::get_id());
+#else
     auto on_initialized = [&all_modules_initialized, &release_callbacks, init_counter = 0](auto done) mutable {
+#endif
         release_callbacks[init_counter] = done;
         ++init_counter;
 
