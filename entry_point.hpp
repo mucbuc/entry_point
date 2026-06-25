@@ -71,7 +71,9 @@ void execute_main_loop(T update_callback, unsigned fps = 0)
 
         const auto work_end { system_clock::now() };
         const auto sleep_duration { time_slice_target - (work_end - work_begin) };
-        std::this_thread::sleep_for(sleep_duration);
+        if (sleep_duration > duration<double>(0)) {
+            std::this_thread::sleep_for(sleep_duration);
+        }
     }
 #endif
 }
