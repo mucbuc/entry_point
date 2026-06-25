@@ -83,10 +83,9 @@ void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...> modules
     static constexpr size_t ModulesSize = std::tuple_size<ModulesType>::value;
 
     std::array<std::function<void()>, ModulesSize> release_callbacks;
-    size_t init_counter(0);
     std::atomic<bool> all_modules_initialized = false;
 
-    auto on_initialized = [&all_modules_initialized, &release_callbacks, &init_counter](auto done) {
+    auto on_initialized = [&all_modules_initialized, &release_callbacks, init_counter = 0](auto done) mutable {
         release_callbacks[init_counter] = done;
         ++init_counter;
 
@@ -108,7 +107,6 @@ void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...> modules
 
     entry_point::execute_main_loop([&all_modules_initialized,
                                        &state,
-                                       &init_counter,
                                        &release_callbacks,
                                        &modules
 #ifndef NDEBUG
@@ -120,16 +118,12 @@ void execute_main_loop(State_Type& state, unsigned fps, std::tuple<T...> modules
 
             bool canceled = false;
             auto release_and_cancel = [cancel,
-                                          &init_counter,
                                           &release_callbacks,
                                           &canceled]() {
                 if (!canceled) {
-                    auto release_mod = [&init_counter](auto&& mod) {
-                        ASSERT(init_counter)
-                        (init_counter);
+                    auto release_mod = [](auto&& mod) {
                         ASSERT(mod);
 
-                        --init_counter;
                         mod();
                     };
 
